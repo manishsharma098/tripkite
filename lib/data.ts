@@ -1,10 +1,23 @@
-export const photo = (id, w = 1200, focus) =>
+export const photo = (id, w = 1200, focus?) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80` +
   (focus ? `&h=${Math.round(w * focus.ratio)}&crop=focalpoint&fp-x=${focus.x}&fp-y=${focus.y}&fp-z=${focus.z}` : "");
 
-export const ORIGIN = { city: "New Delhi", code: "DEL" };
+export const origins = [
+  { id: "del", city: "New Delhi", code: "DEL" },
+  { id: "bom", city: "Mumbai", code: "BOM" },
+  { id: "blr", city: "Bengaluru", code: "BLR" },
+  { id: "hyd", city: "Hyderabad", code: "HYD" },
+  { id: "maa", city: "Chennai", code: "MAA" },
+  { id: "ccu", city: "Kolkata", code: "CCU" },
+  { id: "amd", city: "Ahmedabad", code: "AMD" },
+  { id: "goi", city: "Goa", code: "GOI" },
+  { id: "cok", city: "Kochi", code: "COK" },
+  { id: "jai", city: "Jaipur", code: "JAI" },
+];
 
-export const destinations = [
+export const byOrigin = Object.fromEntries(origins.map((o) => [o.id, o]));
+
+const places = [
   {
     id: "kyoto",
     city: "Kyoto",
@@ -127,8 +140,6 @@ export const destinations = [
   },
 ];
 
-export const byId = Object.fromEntries(destinations.map((d) => [d.id, d]));
-
 export const reviews = [
   { name: "Ananya R.", from: "Kyoto", text: "Booked at midnight, boarding pass in my inbox before I brushed my teeth. The price hold saved me ₹9,000.", stamp: "KIX" },
   { name: "Marcus T.", from: "Santorini", text: "The fare-drop alert pinged on a Tuesday. We were watching the caldera sunset by Friday.", stamp: "JTR" },
@@ -149,7 +160,7 @@ export const experiences = [
 ];
 
 /* ---------- Destination details ---------- */
-const details = {
+const details: Record<string, { flight: number; best: string; currency: string; visa: string; highlights: string[] }> = {
   kyoto: { flight: 9.5, best: "Mar–May, Oct–Nov", currency: "Japanese yen", visa: "e-Visa, 5 working days", highlights: ["Sunrise at Fushimi Inari before the crowds", "Tea ceremony in a Gion machiya", "Arashiyama bamboo grove by bike", "Kaiseki dinner along the Kamo river"] },
   santorini: { flight: 8, best: "May–Oct", currency: "Euro", visa: "Schengen visa", highlights: ["Catamaran cruise round the caldera", "Sunset from the Oia castle ruins", "Wine tasting at a cliffside winery", "Black-sand afternoon at Perissa"] },
   bali: { flight: 7, best: "Apr–Oct", currency: "Indonesian rupiah", visa: "Visa on arrival", highlights: ["Tegallalang rice terraces at first light", "Surf lesson on the Canggu breaks", "Uluwatu temple and kecak fire dance", "Private villa with a jungle pool"] },
@@ -162,7 +173,8 @@ const details = {
   langkawi: { flight: 6, best: "Nov–Apr", currency: "Malaysian ringgit", visa: "Visa-free, 30 days", highlights: ["Island hopping by longtail boat", "SkyBridge walk above the rainforest", "Mangrove kayak with eagle spotting", "Sunset dinner on Cenang beach"] },
 };
 
-destinations.forEach((d) => Object.assign(d, details[d.id]));
+export const destinations = places.map((d) => ({ ...d, ...details[d.id] }));
+export const byId = Object.fromEntries(destinations.map((d) => [d.id, d]));
 
 export const formatHours = (h) => `${Math.floor(h)}h ${Math.round((h % 1) * 60)}m`;
 

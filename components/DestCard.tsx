@@ -5,7 +5,7 @@ import Link from "next/link";
 import { formatINR, photo } from "@/lib/data";
 import { useBooking } from "./BookingProvider";
 
-export default function DestCard({ d, i = 0, badge }) {
+export default function DestCard({ d, i = 0, badge = null }) {
   const { openBooking } = useBooking();
   return (
     <article className="dcard" data-cursor="View" data-tilt style={{ "--i": i, "--tint": d.tint }}>

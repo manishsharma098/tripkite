@@ -1,15 +1,16 @@
-import { ORIGIN, byId } from "@/lib/data";
+import { byId, byOrigin } from "@/lib/data";
 import { prettyDate } from "@/lib/trips";
 
 export default function BoardingPass({ trip }) {
   const d = byId[trip.dest];
+  const from = byOrigin[trip.from];
   return (
     <div className="pass">
       <div className="pass-main">
         <div className="pass-route">
           <div>
-            <strong>{ORIGIN.code}</strong>
-            <span>{ORIGIN.city}</span>
+            <strong>{from?.code || "—"}</strong>
+            <span>{from?.city || "Departure"}</span>
           </div>
           <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" className="pass-plane">
             <path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" />

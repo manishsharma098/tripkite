@@ -15,7 +15,7 @@ export default function Footer() {
           <p className="footer-lead split-host" data-reveal><SplitText>Somewhere new is closer than it looks.</SplitText></p>
           <Link href="/search" className="btn btn-glow" data-magnetic>Start planning</Link>
         </div>
-        {cols.map(([title, items]) => (
+        {cols.map(([title, items]: [string, [string, string][]]) => (
           <div key={title} className="footer-col">
             <h3>{title}</h3>
             <ul>

@@ -72,7 +72,7 @@ export default function Trending() {
             <h2 className="display" data-reveal>
               <SplitText>Where everyone’s flying this week</SplitText>
             </h2>
-            <p>Ten routes, ranked by bookings from {`New Delhi`} over the last seven days. Prices are per person, return.</p>
+            <p>Ten routes, ranked by bookings over the last seven days. Prices are per person, return.</p>
             <div className="trending-bar"><span ref={bar} /></div>
           </div>
 

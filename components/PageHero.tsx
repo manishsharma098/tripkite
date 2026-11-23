@@ -3,7 +3,7 @@ import Link from "next/link";
 import { photo } from "@/lib/data";
 
 // Rounded photo banner used at the top of every inner page
-export default function PageHero({ img, title, sub, crumbs = [], children, size = "md" }) {
+export default function PageHero({ img, title, sub, crumbs = [], children = null, size = "md" }) {
   return (
     <section className={`page-hero page-hero-${size}`}>
       <div className="page-hero-frame">
