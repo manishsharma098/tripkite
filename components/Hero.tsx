@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { ORIGIN, byId, destinations, formatINR, photo } from "@/lib/data";
+import { byId, destinations, formatINR, photo } from "@/lib/data";
 import { useBooking } from "./BookingProvider";
 import SearchConsole from "./SearchConsole";
 
@@ -66,7 +66,7 @@ export default function Hero() {
 
         <div className="hero-content">
           <p className="hero-chip">
-            <span className="pulse" /> Departures from {ORIGIN.city} · {destinations.length} destinations
+            <span className="pulse" /> Choose your departure city · {destinations.length} destinations
           </p>
 
           <h1 className="hero-title">

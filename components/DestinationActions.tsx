@@ -11,7 +11,7 @@ export function BookPanel({ id }) {
     <aside className="book-panel" data-reveal>
       <p className="book-panel-from">{d.nights} nights, flights and stay from</p>
       <p className="book-panel-price">{formatINR(d.price)}</p>
-      <p className="book-panel-note">per person, return from New Delhi</p>
+      <p className="book-panel-note">per person, return from the city you choose</p>
       <button className="btn btn-glow btn-block" onClick={() => openBooking(d)} data-magnetic>
         Book this trip
       </button>

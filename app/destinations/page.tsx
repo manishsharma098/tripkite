@@ -9,7 +9,7 @@ export default function DestinationsPage() {
       <PageHero
         img="1469854523086-cc02fe5d8800"
         title="Every place we fly to"
-        sub="Ten destinations from New Delhi, each with flights, a hand-picked stay and a day-by-day plan."
+        sub="Ten destinations, each with flights, a hand-picked stay and a day-by-day plan."
         crumbs={[["Destinations"]]}
       />
       <DestinationsBrowser />

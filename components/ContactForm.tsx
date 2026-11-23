@@ -26,7 +26,7 @@ export default function ContactForm() {
       className="ck-card"
       onSubmit={(e) => {
         e.preventDefault();
-        setSent(new FormData(e.currentTarget).get("name").split(" ")[0]);
+        setSent(String(new FormData(e.currentTarget).get("name") || "").split(" ")[0]);
       }}
     >
       <div className="field-row">

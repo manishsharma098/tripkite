@@ -13,7 +13,7 @@ function useCountdown() {
     const end = new Date();
     end.setDate(end.getDate() + 2);
     end.setHours(23, 59, 59, 0);
-    const tick = () => setLeft(Math.max(0, end - Date.now()));
+    const tick = () => setLeft(Math.max(0, end.getTime() - Date.now()));
     tick();
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);

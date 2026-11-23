@@ -21,7 +21,7 @@ function Countdown({ days, now }) {
   const end = new Date();
   end.setDate(end.getDate() + days);
   end.setHours(23, 59, 59, 0);
-  const s = Math.max(0, Math.floor((end - now) / 1000));
+  const s = Math.max(0, Math.floor((end.getTime() - now) / 1000));
   const parts = [Math.floor(s / 86400), Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60];
   return (
     <span className="mini-timer">
@@ -33,7 +33,7 @@ function Countdown({ days, now }) {
   );
 }
 
-const SORTS = {
+const SORTS: Record<string, [string, (a: any, b: any) => number]> = {
   off: ["Biggest drop", (a, b) => b.off - a.off],
   soon: ["Ending soon", (a, b) => a.days - b.days],
   price: ["Lowest price", (a, b) => a.dest.price - b.dest.price],
@@ -56,7 +56,7 @@ export default function DealsList() {
         <div className="deal-hero-body">
           <p className="deal-kicker">Deal of the week</p>
           <h2>{top.dest.city}: {top.title.toLowerCase()}</h2>
-          <p>{top.dest.note}. {top.dest.nights} nights with flights from New Delhi.</p>
+          <p>{top.dest.note}. {top.dest.nights} nights with flights included.</p>
           <p className="deal-price">
             <s>{formatINR(top.was)}</s>
             <b>{formatINR(top.dest.price)}</b>

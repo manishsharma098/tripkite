@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ORIGIN, byId, destinations, flightsFor, formatHours, formatINR } from "@/lib/data";
+import { byId, byOrigin, destinations, flightsFor, formatHours, formatINR } from "@/lib/data";
 import { addDays, iso, prettyDate } from "@/lib/trips";
 import { useBooking } from "./BookingProvider";
 import { StayCards } from "./DestinationActions";
 import DestCard from "./DestCard";
 import SearchConsole from "./SearchConsole";
 
-const SORTS = {
+const SORTS: Record<string, [string, (a: any, b: any) => number]> = {
   cheap: ["Cheapest", (a, b) => a.price - b.price],
   fast: ["Fastest", (a, b) => a.hours - b.hours],
   early: ["Earliest", (a, b) => a.depart.localeCompare(b.depart)],
@@ -28,6 +28,7 @@ export default function SearchView() {
   const [sort, setSort] = useState("cheap");
   const [stops, setStops] = useState("any");
 
+  const origin = byOrigin[params.get("from")];
   const active = byId[params.get("to")];
   const activeMode = params.get("mode") || "flights";
   const n = Number(params.get("travellers")) || 2;
@@ -59,7 +60,7 @@ export default function SearchView() {
           <div className="results-head">
             <div>
               <p className="results-route">
-                {ORIGIN.code}
+                {origin?.code || "—"}
                 <svg viewBox="0 0 60 16" width="60" height="16" aria-hidden="true">
                   <path d="M2 12 Q30 -6 58 12" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="3 4" />
                 </svg>
@@ -109,7 +110,7 @@ export default function SearchView() {
                     <div className="flight-times">
                       <div>
                         <b>{f.depart}</b>
-                        <small>{ORIGIN.code}</small>
+                        <small>{origin?.code || "—"}</small>
                       </div>
                       <span className="flight-line">
                         <small>{formatHours(f.hours)}</small>
@@ -126,7 +127,7 @@ export default function SearchView() {
                       <small>{formatINR(f.price * n)} for {n}</small>
                       <button
                         className="btn btn-primary btn-sm"
-                        onClick={() => openBooking(active, { flight: f.id, depart, ret: params.get("ret") || undefined, cabin: params.get("cabin") || undefined, travellers: n })}
+                        onClick={() => openBooking(active, { from: origin?.id, flight: f.id, depart, ret: params.get("ret") || undefined, cabin: params.get("cabin") || undefined, travellers: n })}
                       >
                         Select
                       </button>
@@ -145,13 +146,13 @@ export default function SearchView() {
               <div className="package-info">
                 <h3>Everything in one booking</h3>
                 <ul className="highlights">
-                  <li><span className="highlight-dot" />Return flights from {ORIGIN.city}</li>
+                  <li><span className="highlight-dot" />Return flights from {origin?.city || "your city"}</li>
                   <li><span className="highlight-dot" />{active.nights} nights in a hand-picked stay</li>
                   {active.highlights.slice(0, 3).map((h) => (
                     <li key={h}><span className="highlight-dot" />{h}</li>
                   ))}
                 </ul>
-                <button className="btn btn-glow" onClick={() => openBooking(active, { depart, ret: params.get("ret") || undefined, travellers: n })}>
+                <button className="btn btn-glow" onClick={() => openBooking(active, { from: origin?.id, depart, ret: params.get("ret") || undefined, travellers: n })}>
                   Book the package for {formatINR(active.price * n)}
                 </button>
               </div>

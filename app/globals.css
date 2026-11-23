@@ -1147,6 +1147,8 @@ main > section:not(.hero):not(.trending):not(.reviews):not(.steps):not(.page-her
 .sugg-row {
   width: 100%;
   display: grid;
+  font: inherit;
+  color: inherit;
   grid-template-columns: 48px 1fr auto;
   align-items: center;
   gap: 14px;
@@ -1161,6 +1163,7 @@ main > section:not(.hero):not(.trending):not(.reviews):not(.steps):not(.page-her
 }
 
 .sugg-row.is-active,
+.sugg-row:hover,
 .sugg-recent:hover {
   background: var(--bg);
 }
@@ -1225,6 +1228,17 @@ main > section:not(.hero):not(.trending):not(.reviews):not(.steps):not(.page-her
   font-size: 12px;
   font-weight: 800;
   transition: background 0.2s, color 0.2s;
+}
+
+.sugg-search {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--bg);
+  font: inherit;
+  color: inherit;
 }
 
 .sugg-filter {

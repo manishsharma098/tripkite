@@ -67,8 +67,8 @@ export default function Effects() {
 
       if (!reduced) {
         // Queried each frame so it follows client-side page changes
-        const hero = document.querySelector(".hero, .page-hero");
-        const ticker = document.querySelector(".ticker");
+        const hero = document.querySelector<HTMLElement>(".hero, .page-hero");
+        const ticker = document.querySelector<HTMLElement>(".ticker");
         if (hero) hero.style.setProperty("--hp", Math.min(1, y / window.innerHeight).toFixed(3));
         const velocity = y - lastY;
         skew += (Math.max(-14, Math.min(14, velocity * 0.35)) - skew) * 0.12;

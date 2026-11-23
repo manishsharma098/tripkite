@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CABINS, ORIGIN, STAYS, byId, flightsFor, formatHours, formatINR, photo } from "@/lib/data";
+import { CABINS, STAYS, byId, byOrigin, flightsFor, formatHours, formatINR, origins, photo } from "@/lib/data";
 import { addDays, iso, makeRef, prettyDate, saveTrip } from "@/lib/trips";
 import BoardingPass from "./BoardingPass";
 
@@ -36,6 +36,7 @@ export default function Checkout() {
       ret: params.get("ret") || iso(addDays(d.nights, new Date(depart + "T00:00:00"))),
       travellers: Number(params.get("travellers")) || 2,
       cabin: params.get("cabin") || "economy",
+      from: params.get("from") && byOrigin[params.get("from")] ? params.get("from") : "",
       stay: params.get("stay") || "boutique",
       flight: params.get("flight") || flightsFor(d)[2].id,
     });
@@ -96,6 +97,7 @@ export default function Checkout() {
     const record = {
       ...makeRef(),
       dest: d.id,
+      from: trip.from,
       depart: trip.depart,
       ret: trip.ret,
       travellers: trip.travellers,
@@ -132,6 +134,15 @@ export default function Checkout() {
           {step === 0 && (
             <form className="ck-card" onSubmit={next}>
               <h2>Your trip</h2>
+              <label className="field">
+                <span>Flying from</span>
+                <select className="select" value={trip.from} onChange={(e) => set("from", e.target.value)} required>
+                  <option value="">Select city</option>
+                  {origins.map((o) => (
+                    <option key={o.id} value={o.id}>{o.city} ({o.code})</option>
+                  ))}
+                </select>
+              </label>
               <div className="field-row">
                 <label className="field">
                   <span>Depart</span>
@@ -299,7 +310,7 @@ export default function Checkout() {
           <div className="ck-summary-img">
             <Image src={photo(d.img, 800)} alt={`${d.city}, ${d.country}`} fill sizes="380px" />
             <div>
-              <small>{ORIGIN.code} → {d.code}</small>
+              <small>{byOrigin[trip.from]?.code || "—"} → {d.code}</small>
               <b>{d.city}</b>
             </div>
           </div>

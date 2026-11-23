@@ -10,7 +10,7 @@ export default function SearchPage() {
       <PageHero
         img="1530521954074-e64f6810b32d"
         title="Find your flight"
-        sub="Compare every departure from New Delhi. Prices are per person and include taxes."
+        sub="Compare fares from the city you choose. Prices are per person and include taxes."
         crumbs={[["Search"]]}
         size="sm"
       />

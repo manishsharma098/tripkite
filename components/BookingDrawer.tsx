@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { CABINS, ORIGIN, formatINR, photo } from "@/lib/data";
+import { CABINS, byOrigin, formatINR, origins, photo } from "@/lib/data";
 import { addDays, iso } from "@/lib/trips";
 
 // Quick trip configurator; the full booking happens on /booking
@@ -19,6 +19,7 @@ export default function BookingDrawer({ booking, onClose }) {
     const depart = booking.depart || iso(addDays(21));
     setLast(booking);
     setForm({
+      from: booking.from && byOrigin[booking.from] ? booking.from : "",
       depart,
       ret: booking.ret || iso(addDays(d.nights, new Date(depart + "T00:00:00"))),
       travellers: booking.travellers || 2,
@@ -43,6 +44,7 @@ export default function BookingDrawer({ booking, onClose }) {
   if (!last || !form) return null;
 
   const d = last.destination;
+  const origin = byOrigin[form.from];
   const cabin = CABINS.find((c) => c.id === form.cabin);
   const fare = d.price * cabin.factor * form.travellers;
   const taxes = fare * 0.12;
@@ -54,6 +56,7 @@ export default function BookingDrawer({ booking, onClose }) {
     travellers: form.travellers,
     cabin: form.cabin,
     ...(last.flight ? { flight: last.flight } : {}),
+    ...(form.from ? { from: form.from } : {}),
     ...(last.stay ? { stay: last.stay } : {}),
   })}`;
 
@@ -85,8 +88,8 @@ export default function BookingDrawer({ booking, onClose }) {
         <div className="drawer-body">
           <div className="route">
             <div>
-              <strong>{ORIGIN.code}</strong>
-              <span>{ORIGIN.city}</span>
+              <strong>{origin ? origin.code : "—"}</strong>
+              <span>{origin ? origin.city : "Select city"}</span>
             </div>
             <svg className="route-line" viewBox="0 0 120 24" aria-hidden="true">
               <path d="M2 18 Q60 -8 118 18" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 5" />
@@ -96,6 +99,16 @@ export default function BookingDrawer({ booking, onClose }) {
               <span>{d.city}</span>
             </div>
           </div>
+
+          <label className="field">
+            <span>Flying from</span>
+            <select className="select" value={form.from} onChange={(e) => set("from", e.target.value)} required>
+              <option value="">Select city</option>
+              {origins.map((o) => (
+                <option key={o.id} value={o.id}>{o.city} ({o.code})</option>
+              ))}
+            </select>
+          </label>
 
           <div className="field-row">
             <label className="field">
@@ -142,9 +155,13 @@ export default function BookingDrawer({ booking, onClose }) {
             </div>
           </dl>
 
-          <Link href={checkout} className="btn btn-primary btn-block" onClick={onClose}>
-            Continue to checkout
-          </Link>
+          {form.from ? (
+            <Link href={checkout} className="btn btn-primary btn-block" onClick={onClose}>
+              Continue to checkout
+            </Link>
+          ) : (
+            <button type="button" className="btn btn-primary btn-block" disabled>Select a departure city</button>
+          )}
           <Link href={`/destinations/${d.id}`} className="btn btn-ghost btn-block" onClick={onClose}>
             See the full {d.city} trip
           </Link>

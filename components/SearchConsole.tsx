@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { ORIGIN, byId, destinations, flightShare, formatINR, photo } from "@/lib/data";
+import { byId, byOrigin, destinations, flightShare, formatINR, origins, photo } from "@/lib/data";
 import { addDays, iso } from "@/lib/trips";
 
 const MODES = [
@@ -24,7 +24,7 @@ const QUICK = [
   { id: "beach", label: "Beach", filter: (d) => d.type === "Beach" },
   { id: "visa", label: "Easy visa", filter: (d) => /free|arrival|48 hours/i.test(d.visa) },
 ];
-const PANEL_WIDTH = { to: 440, dates: 740, people: 380 };
+const PANEL_WIDTH = { from: 380, to: 440, dates: 740, people: 380 };
 const RECENT_KEY = "tripkite:recent";
 const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
@@ -125,7 +125,7 @@ function Calendar({ dest, depart, ret, oneWay, onPick, labels }) {
 
   const months = [offset, offset + 1].map((o) => new Date(start.getFullYear(), start.getMonth() + o, 1));
   const fares = useMemo(() => {
-    const out = {};
+    const out: Record<string, number> = {};
     months.forEach((m) => {
       const days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
       for (let d = 1; d <= days; d++) {
@@ -212,10 +212,12 @@ function Calendar({ dest, depart, ret, oneWay, onPick, labels }) {
 
 /* ---------- the console ---------- */
 
-export default function SearchConsole({ variant = "hero", initial = {} }) {
+export default function SearchConsole({ variant = "hero", initial = {} as any }) {
   const router = useRouter();
   const [mode, setMode] = useState(Math.max(0, MODES.findIndex((m) => m.id === initial.mode)));
   const [oneWay, setOneWay] = useState(initial.trip === "oneway");
+  const [fromId, setFromId] = useState(initial.from && byOrigin[initial.from] ? initial.from : "");
+  const [fromQuery, setFromQuery] = useState("");
   const [to, setTo] = useState(initial.to && byId[initial.to] ? initial.to : "");
   const [query, setQuery] = useState(byId[initial.to]?.city || "");
   const [depart, setDepart] = useState(initial.depart || "");
@@ -244,11 +246,13 @@ export default function SearchConsole({ variant = "hero", initial = {} }) {
   const barRef = useRef(null);
   const innerRef = useRef(null);
   const inputRef = useRef(null);
+  const fromInputRef = useRef(null);
   const segs = { from: useRef(null), to: useRef(null), dates: useRef(null), people: useRef(null) };
 
   const stays = MODES[mode].id === "stays";
   const roundTrip = stays || !oneWay;
   const dest = byId[to];
+  const fromCity = byOrigin[fromId];
   const labels = stays ? ["Check-in", "Check-out"] : ["Depart", "Return"];
   const travellers = pax.adults + pax.children;
 
@@ -360,6 +364,7 @@ export default function SearchConsole({ variant = "hero", initial = {} }) {
   function openPanel(name) {
     setOpen(name);
     if (name === "to") requestAnimationFrame(() => inputRef.current?.focus());
+    if (name === "from") requestAnimationFrame(() => fromInputRef.current?.focus());
   }
   function close() {
     setOpen(null);
@@ -380,6 +385,18 @@ export default function SearchConsole({ variant = "hero", initial = {} }) {
   }, [query, filter, dest]);
   const showRecent = !query && !filter && recent.length > 0;
 
+  const fromList = origins.filter((o) => {
+    const q = fromQuery.trim().toLowerCase();
+    return !q || `${o.city} ${o.code}`.toLowerCase().includes(q);
+  });
+
+  function pickFrom(o) {
+    setFromId(o.id);
+    setFromQuery("");
+    pulse("from");
+    setTimeout(() => openPanel("to"), 180);
+  }
+
   function choose(d) {
     setTo(d.id);
     setQuery(d.city);
@@ -389,6 +406,7 @@ export default function SearchConsole({ variant = "hero", initial = {} }) {
   }
 
   function applyRecent(r) {
+    setFromId(r.from && byOrigin[r.from] ? r.from : "");
     setTo(r.to);
     setQuery(byId[r.to].city);
     setDepart(r.depart);
@@ -449,17 +467,24 @@ export default function SearchConsole({ variant = "hero", initial = {} }) {
 
   function submit(e) {
     e.preventDefault();
+    if (!stays && !fromCity) {
+      setShake(true);
+      setTimeout(() => setShake(false), 600);
+      openPanel("from");
+      return;
+    }
     if (!dest) {
       setShake(true);
       setTimeout(() => setShake(false), 600);
       openPanel("to");
       return;
     }
-    const entry = { to, depart, ret: roundTrip ? ret : "", trip: roundTrip ? "return" : "oneway", ...pax, cabin, mode: MODES[mode].id };
+    const entry = { from: fromId, to, depart, ret: roundTrip ? ret : "", trip: roundTrip ? "return" : "oneway", ...pax, cabin, mode: MODES[mode].id };
     saveRecent(entry);
     setLoading(true);
     close();
-    const qs = new URLSearchParams({ ...entry, travellers });
+    const qs = new URLSearchParams();
+    Object.entries({ ...entry, travellers }).forEach(([k, v]) => qs.set(k, String(v ?? "")));
     setTimeout(() => router.push(`/search?${qs}`), reducedMotion() ? 0 : 950);
   }
 
@@ -522,13 +547,22 @@ export default function SearchConsole({ variant = "hero", initial = {} }) {
             aria-hidden="true"
           />
 
-          <div ref={segs.from} className={`seg seg-static ${stays ? "is-collapsed" : ""}`} style={{ "--i": 0 }} onMouseEnter={(e) => glowTo(e.currentTarget)}>
+          <button
+            type="button"
+            ref={segs.from}
+            className={`seg ${open === "from" ? "is-open" : ""} ${flash === "from" ? "is-flash" : ""} ${stays ? "is-collapsed" : ""}`}
+            style={{ "--i": 0 }}
+            onMouseEnter={(e) => glowTo(e.currentTarget)}
+            onClick={() => openPanel(open === "from" ? null : "from")}
+            aria-expanded={open === "from"}
+            aria-haspopup="dialog"
+          >
             <Icon name="from" />
             <span className="seg-text">
               <span className="seg-label">From</span>
-              <span className="seg-value">{ORIGIN.city} ({ORIGIN.code})</span>
+              <span className="seg-value">{fromCity ? `${fromCity.city} (${fromCity.code})` : "Select city"}</span>
             </span>
-          </div>
+          </button>
 
           <div
             ref={segs.to}
@@ -618,9 +652,39 @@ export default function SearchConsole({ variant = "hero", initial = {} }) {
           className={`sc-panel ${open ? "is-open" : ""}`}
           style={{ left: panel.left, width: panel.width, height: panel.height }}
           role="dialog"
-          aria-label={panelKey === "to" ? "Choose a destination" : panelKey === "dates" ? "Choose dates" : "Travellers"}
+          aria-label={panelKey === "from" ? "Choose a departure city" : panelKey === "to" ? "Choose a destination" : panelKey === "dates" ? "Choose dates" : "Travellers"}
         >
           <div ref={innerRef} className="sc-panel-inner" key={panelKey}>
+            {panelKey === "from" && (
+              <div className="sugg">
+                <input
+                  ref={fromInputRef}
+                  className="sugg-search"
+                  value={fromQuery}
+                  onChange={(e) => setFromQuery(e.target.value)}
+                  placeholder="City or airport code"
+                  aria-label="Departure city"
+                  autoComplete="off"
+                />
+                <p className="sugg-head">Flying from</p>
+                <ul role="listbox" aria-label="Departure cities">
+                  {fromList.length === 0 && <li className="sugg-none">No city matches “{fromQuery}”.</li>}
+                  {fromList.map((o) => (
+                    <li key={o.id}>
+                      <button type="button" className={`sugg-row ${fromId === o.id ? "is-active" : ""}`} onClick={() => pickFrom(o)}>
+                        <span className="sugg-icon"><Icon name="from" /></span>
+                        <span className="sugg-main">
+                          <b>{o.city}</b>
+                          <small>India</small>
+                        </span>
+                        <span className="sugg-code">{o.code}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {panelKey === "to" && (
               <div className="sugg">
                 {filter && (
@@ -643,7 +707,7 @@ export default function SearchConsole({ variant = "hero", initial = {} }) {
                     ))}
                   </>
                 )}
-                <p className="sugg-head">{query || filter ? "Matches" : "Popular from New Delhi"}</p>
+                <p className="sugg-head">{query || filter ? "Matches" : "Popular destinations"}</p>
                 <ul id="sc-list" role="listbox" aria-label="Destinations">
                   {list.length === 0 && <li className="sugg-none">No destination matches “{query}”. Try a country instead.</li>}
                   {(query || filter ? list : list.slice(0, 5)).map((d, i) => (
@@ -713,7 +777,7 @@ export default function SearchConsole({ variant = "hero", initial = {} }) {
               <span className="hint-tag">{pct}% cheaper than last week</span>
             </>
           ) : (
-            <>Flights from {ORIGIN.city} start at <b>{formatINR(hintPrice)}</b></>
+            <>{fromCity ? `Flights from ${fromCity.city} start at ` : "Pick a departure city. Fares start at "}<b>{formatINR(hintPrice)}</b></>
           )}
         </p>
         <div className="quick">
